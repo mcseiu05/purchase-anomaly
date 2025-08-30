@@ -64,9 +64,10 @@ Clone the repository and run the script:
 git clone https://github.com/yourusername/time-aware-anomaly-detection.git
 cd time-aware-anomaly-detection
 python detect_anomalies.py
-
+```
 
 Make sure your input CSV is named purchase_price.csv (or update the script accordingly).
+---
 
 ## Use Cases
 
@@ -83,6 +84,8 @@ Python 3.8+
 Pandas
 
 
-##Install dependencies:
+## Install dependencies:
 
+```bash
 pip install pandas
+```
