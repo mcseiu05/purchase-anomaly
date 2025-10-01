@@ -4,11 +4,9 @@ During an internal audit, a senior manager from a real estate company wanted to 
 
 This repository contains a simplified, open-source version of that idea, rewritten with Streamlit for an interactive experience. Users can upload a CSV file containing purchase records with the columns:
 
-ItemName
-
-TransactionDate
-
-UnitPrice
+- ItemName
+- TransactionDate
+- UnitPrice
 
 The app then processes the data and generates a downloadable report with additional columns indicating whether a record is flagged as an anomaly. This makes the tool easy to adapt for learning, experimentation, or use in similar data-checking scenarios.
 
