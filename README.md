@@ -1,7 +1,16 @@
 # Time-Aware Price Anomaly Detection
 
-This project provides a **Python + Pandas implementation** for detecting anomalies in product purchase prices over time.  
-It uses **Exponential Weighted Moving Average (EWMA)** and **rolling window statistics** to model expected price behavior and flag unusual deviations.
+During an internal audit, a senior manager from a real estate company wanted to identify unusual purchase transactions that might indicate errors or irregularities in the procurement process. To assist, I built a Python script that analyzes purchase data and highlights anomalies, making it easier for the audit team to review suspicious entries quickly.
+
+This repository contains a simplified, open-source version of that idea, rewritten with Streamlit for an interactive experience. Users can upload a CSV file containing purchase records with the columns:
+
+ItemName
+
+TransactionDate
+
+UnitPrice
+
+The app then processes the data and generates a downloadable report with additional columns indicating whether a record is flagged as an anomaly. This makes the tool easy to adapt for learning, experimentation, or use in similar data-checking scenarios.
 
 ---
 
