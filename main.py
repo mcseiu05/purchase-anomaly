@@ -1,34 +1,55 @@
+import streamlit as st
 import pandas as pd
+from io import BytesIO
 
-# Load CSV and parse TransactionDate as datetime
-df = pd.read_csv("purchase_price.csv", parse_dates=['TransactionDate'])
+# Page config
+st.set_page_config(page_title="Purchase Anomaly Detection App", layout="wide")
 
-# Sort by ItemName and date to keep time order
-df = df.sort_values(by=['ItemName', 'TransactionDate'])
-
-# Calculate expected price using Exponential Weighted Moving Average (EWMA)
-df['ExpectedPrice'] = (
-    df.groupby('ItemName')['UnitPrice']
-      .transform(lambda x: x.ewm(span=60, adjust=False).mean())
+st.title("📊 Purchase Anomaly Detection")
+st.write(
+    "Upload your dataset with columns: **ItemName, TransactionDate, UnitPrice**. "
+    "The app will detect unusual price deviations and provide a downloadable results file."
 )
 
-# Calculate deviation from expected price
-df['Deviation'] = (df['UnitPrice'] - df['ExpectedPrice']) / df['ExpectedPrice']
+st.sidebar.header("⚙️ Controls")
+uploaded_file = st.sidebar.file_uploader("Upload CSV or Excel file", type=["csv", "xlsx"])
 
-# Rolling mean of deviation (per ItemName)
-df['RollingMean'] = (
-    df.groupby('ItemName')['Deviation']
-      .transform(lambda x: x.rolling(window=60, min_periods=10).mean())
-)
+if uploaded_file is not None:
+    if uploaded_file.name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file)
+    else:
+        df = pd.read_excel(uploaded_file)
 
-# Rolling std deviation of deviation (per ItemName)
-df['RollingStd'] = (
-    df.groupby('ItemName')['Deviation']
-      .transform(lambda x: x.rolling(window=60, min_periods=10).std())
-)
+    st.subheader("🔍 Preview of Dataset")
+    st.dataframe(df.head())
 
-# Flag anomalies where deviation is significantly higher than normal
-df['IsAnomaly'] = df['Deviation'] > (df['RollingMean'] + 2 * df['RollingStd'])
+    required_cols = {"ItemName", "TransactionDate", "UnitPrice"}
+    if not required_cols.issubset(df.columns):
+        st.error(f"Your dataset must contain the following columns: {required_cols}")
+    else:
+        df['TransactionDate'] = pd.to_datetime(df['TransactionDate'], errors='coerce')
+        df['ExpectedPrice'] = df.groupby('ItemName')['UnitPrice'].transform('mean')
+        df['Deviation'] = (df['UnitPrice'] - df['ExpectedPrice']) / df['ExpectedPrice']
+        df = df.sort_values(by=['ItemName', 'TransactionDate'])
+        df['RollingMean'] = (
+            df.groupby('ItemName')['Deviation']
+              .transform(lambda x: x.rolling(window=60, min_periods=10).mean())
+        )
+        df['RollingStd'] = (
+            df.groupby('ItemName')['Deviation']
+              .transform(lambda x: x.rolling(window=60, min_periods=10).std())
+        )
+        df['IsAnomaly'] = df['Deviation'] > (df['RollingMean'] + 2 * df['RollingStd'])
 
-# Save results
-df.to_csv("time_aware_anomalies.csv", index=False)
+        st.subheader("Processed Data with Anomalies")
+        st.dataframe(df.head(20))
+
+        # Download button
+        csv_buffer = BytesIO()
+        df.to_csv(csv_buffer, index=False)
+        st.download_button(
+            label="💾 Download Results as CSV",
+            data=csv_buffer.getvalue(),
+            file_name="purchase_anomalies.csv",
+            mime="text/csv"
+        )
